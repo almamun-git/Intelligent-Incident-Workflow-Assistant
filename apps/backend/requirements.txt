@@ -1,0 +1,11 @@
+FastAPI
+SQLAlchemy
+uvicorn
+pydantic
+httpx
+python-dotenv
+pytest
+pytest-asyncio
+mypy
+black
+flake8

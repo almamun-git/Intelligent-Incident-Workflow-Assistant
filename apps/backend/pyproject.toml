@@ -1,0 +1,26 @@
+[tool]
+name = "ops-assist-ai"
+version = "0.1.0"
+description = "Intelligent Incident Management Platform"
+authors = ["Your Name <your.email@example.com>"]
+license = "MIT"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+fastapi = "^0.75.0"
+uvicorn = "^0.17.0"
+sqlalchemy = "^1.4.27"
+pydantic = "^1.8.2"
+# Add any additional dependencies here
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.5"
+httpx = "^0.19.0"
+# Add any additional development dependencies here
+
+[tool.poetry.scripts]
+start = "uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload"

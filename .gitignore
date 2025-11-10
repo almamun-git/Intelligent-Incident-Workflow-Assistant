@@ -1,0 +1,61 @@
+# ...existing code...
+# Node
+node_modules/
+dist/
+.next/
+npm-debug.log
+.pnp/
+.pnpm-store/
+yarn-error.log
+package-lock.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+*.pyc
+.env
+.env.*
+venv/
+.venv/
+pip-wheel-metadata/
+*.egg-info/
+
+# Test / coverage
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Caches / linters / formatters
+.mypy_cache/
+.ruff_cache/
+.cache/
+.vscode-test/
+
+# Build artifacts
+build/
+target/
+dist/
+*.egg-info/
+*.whl
+
+# IDEs & editors
+.vscode/
+.idea/
+*.iml
+
+# OS / misc
+.DS_Store
+Thumbs.db
+*.log
+
+# Local envs/config
+.env.local
+.env.test
+.env.production
+local_settings.py
+
+# Databases
+*.sqlite3
+test.db

@@ -1,0 +1,19 @@
+{
+  "name": "ops-assist-ai",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "install": "npm install --workspaces",
+    "build": "npm run build --workspace frontend",
+    "start": "npm run start --workspace frontend",
+    "test": "npm run test --workspace backend"
+  },
+  "devDependencies": {
+    "eslint": "^7.32.0",
+    "prettier": "^2.5.1"
+  }
+}
