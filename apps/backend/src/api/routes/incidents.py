@@ -99,7 +99,7 @@ def get_incident(incident_id: int, db: Session = Depends(get_db)):
 @router.patch("/incidents/{incident_id}/status")
 def update_incident_status(
     incident_id: int,
-    new_status: str,
+    status_data: dict,
     db: Session = Depends(get_db)
 ):
     """
@@ -108,10 +108,16 @@ def update_incident_status(
     **Path Parameter:**
     - `incident_id`: The incident ID
     
-    **Query Parameter:**
-    - `new_status`: New status (open, investigating, resolved, closed)
+    **Request Body:**
+    ```json
+    {
+        "status": "investigating"
+    }
+    ```
     
-    **Example:** `PATCH /api/v1/incidents/1/status?new_status=investigating`
+    **Valid statuses:** open, investigating, resolved, closed
+    
+    **Example:** `PATCH /api/v1/incidents/1/status`
     """
     incident = db.query(Incident).filter(Incident.id == incident_id).first()
     
@@ -119,6 +125,14 @@ def update_incident_status(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Incident with id {incident_id} not found"
+        )
+    
+    # Get status from request body
+    new_status = status_data.get("status")
+    if not new_status:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Status is required in request body"
         )
     
     # Validate status
