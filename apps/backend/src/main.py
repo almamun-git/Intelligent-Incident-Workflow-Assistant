@@ -1,23 +1,54 @@
+"""
+Main FastAPI application entry point.
+"""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from apps.backend.src.api.routes import incidents, analytics
-from apps.backend.src.config import settings
+from .core.config import get_settings
+from .core.database import engine, Base
 
-app = FastAPI()
+settings = get_settings()
 
-# Middleware
+# Create database tables
+Base.metadata.create_all(bind=engine)
+
+# Initialize FastAPI app
+app = FastAPI(
+    title="Ops-Assist AI",
+    description="Intelligent Incident Management Platform",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc"
+)
+
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000"],  # Frontend URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include routers
-app.include_router(incidents.router, prefix="/incidents", tags=["incidents"])
-app.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
-
+# Health check endpoints
 @app.get("/")
-def read_root():
-    return {"message": "Welcome to Ops-Assist AI - Intelligent Incident Management Platform"}
+def root():
+    """Root endpoint - API status."""
+    return {
+        "message": "Ops-Assist AI - Intelligent Incident Management Platform",
+        "status": "online",
+        "version": "1.0.0"
+    }
+
+
+@app.get("/health")
+def health_check():
+    """Health check endpoint for monitoring."""
+    return {
+        "status": "healthy",
+        "environment": settings.environment
+    }
+
+
+# Routes will be added in next step
+# app.include_router(events.router, prefix="/api/v1", tags=["events"])
+# app.include_router(incidents.router, prefix="/api/v1", tags=["incidents"])
