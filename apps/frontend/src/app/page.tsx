@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
+import IncidentQuickActions from '../components/IncidentQuickActions'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -159,7 +160,10 @@ export default function Dashboard() {
         <p className="text-gray-600 mt-1">Monitor and manage incidents across your services</p>
       </div>
 
-      {/* Stats Cards */}
+  {/* Quick Actions & Stats */}
+  <IncidentQuickActions />
+
+  {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
           <div className="flex items-center justify-between">
