@@ -1,82 +1,199 @@
-# Ops-Assist AI – Intelligent Incident Management Platform
+# 🚀 Ops-Assist AI – Intelligent Incident Response Platform
 
-## Overview
-Ops-Assist AI is an intelligent incident management platform designed to streamline the process of incident reporting, tracking, and analytics. The platform leverages AI to assist in classifying incidents and suggesting appropriate actions, enhancing operational efficiency.
+AI-powered platform for real-time incident detection, classification, and analytics.
 
-## Project Structure
-This project follows a monorepo structure with separate applications for the backend and frontend:
+---
+
+## 🧠 Overview
+
+Ops-Assist AI helps engineering and DevOps teams detect and triage production issues faster by:
+
+- Streaming and storing application events/logs
+- Automatically grouping spikes of errors into incidents
+- Using AI to classify category and severity and suggest actions
+- Providing a modern dashboard to monitor status and trends
+
+Under the hood, it’s a full-stack app built with FastAPI, PostgreSQL, and a Next.js dashboard. If an OpenAI API key isn’t configured, the AI layer gracefully falls back to a deterministic mock for local testing.
+
+---
+
+## ✨ Core Features
+
+- Real-time event ingestion and querying
+- Automatic incident detection (threshold + time window)
+- AI-powered classification (category, severity, summary, actions)
+- Incident lifecycle management: open → investigating → resolved → closed
+- Modern dashboard with incidents list and details
+- Ready for cloud deployment (Railway + Vercel + Supabase)
+
+---
+
+## 🧱 Monorepo Structure
 
 ```
 ops-assist-ai
 ├── apps
-│   ├── backend          # FastAPI backend application
-│   └── frontend         # Next.js frontend application
+│   ├── backend          # FastAPI backend (API + DB + AI service)
+│   └── frontend         # Next.js dashboard (React + TypeScript)
 ├── packages
-│   └── shared           # Shared types and interfaces
-├── package.json         # Root package configuration
-└── README.md            # Project documentation
+│   └── shared           # Shared types
+├── RUNNING.md           # Detailed local run guide
+├── DEPLOYMENT.md        # Cloud deployment guide
+└── README.md            # You are here
 ```
 
-## Technologies Used
-- **Backend**: FastAPI, SQLAlchemy
-- **Frontend**: Next.js, TypeScript
-- **AI Services**: Custom AI logic for incident classification
+---
 
-## Getting Started
+## 🛠️ Tech Stack
 
-### Prerequisites
-- Python 3.7+
-- Node.js 14+
-- PostgreSQL (or any other database of your choice)
+| Layer | Technology |
+|------|------------|
+| Frontend | Next.js 14 • React 18 • TypeScript • TailwindCSS |
+| Backend | FastAPI • SQLAlchemy • Uvicorn |
+| Database | PostgreSQL (local) • Supabase (hosted) |
+| AI | OpenAI API (with mock fallback) |
+| DevOps | Railway (backend) • Vercel (frontend) |
 
-### Installation
+---
 
-1. **Clone the repository**
-   ```
-   git clone <repository-url>
-   cd ops-assist-ai
-   ```
+## 🧩 Architecture
 
-2. **Backend Setup**
-   - Navigate to the backend directory:
-     ```
-     cd apps/backend
-     ```
-   - Install the required Python packages:
-     ```
-     pip install -r requirements.txt
-     ```
-   - Set up your database and update the configuration in `src/config.py`.
+```
+[ Services emit events/logs ]
+        │
+        ▼
+┌──────────────────────────────┐
+│ FastAPI Backend (Uvicorn)   │
+│  • /api/v1/events           │
+│  • /api/v1/incidents        │
+│  • AI classification        │
+│  • SQLAlchemy ORM           │
+└─────────────┬────────────────┘
+              │
+              ▼
+        [ PostgreSQL ]
+              │
+              ▼
+┌──────────────────────────────┐
+│ Next.js Frontend             │
+│  • Dashboard & Incidents     │
+│  • Filters & Status Updates  │
+└──────────────────────────────┘
+```
 
-3. **Frontend Setup**
-   - Navigate to the frontend directory:
-     ```
-     cd ../frontend
-     ```
-   - Install the required Node.js packages:
-     ```
-     npm install
-     ```
+---
 
-### Running the Applications
+## ⚙️ Quick Start
 
-- **Start the Backend**
-  ```
-  cd apps/backend
-  uvicorn src.main:app --reload
-  ```
+See RUNNING.md for the complete guide. Below are the essentials for macOS/Linux shells.
 
-- **Start the Frontend**
-  ```
-  cd apps/frontend
-  npm run dev
-  ```
+1) Clone
+```bash
+git clone https://github.com/almamun-git/Ops-Assist-AI.git
+cd Ops-Assist-AI
+```
 
-### API Documentation
-The backend API is built using FastAPI, and you can access the interactive API documentation at `http://localhost:8000/docs` once the backend is running.
+2) Backend (FastAPI)
+```bash
+cd apps/backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 
-## Contributing
-Contributions are welcome! Please open an issue or submit a pull request for any enhancements or bug fixes.
+# Create .env (values shown are examples)
+cat > .env << 'EOF'
+DATABASE_URL=postgresql://apu@localhost:5432/ops_assist_ai
+OPENAI_API_KEY=your-openai-api-key-or-empty
+INCIDENT_THRESHOLD=5
+INCIDENT_TIME_WINDOW=300
+EOF
 
-## License
-This project is licensed under the MIT License. See the LICENSE file for more details.# Ops-Assist-AI
+uvicorn src.main:app --reload --port 8000
+```
+
+3) Frontend (Next.js)
+```bash
+cd ../frontend
+npm install
+npm run dev
+```
+
+- Backend: http://localhost:8000 (Docs at /docs)
+- Frontend: http://localhost:3000
+
+---
+
+## 🔗 API Reference (selected)
+
+Base URL: http://localhost:8000
+
+- Health
+  - GET `/health` → `{ "status": "healthy", "environment": "development" }`
+
+- Events
+  - POST `/api/v1/events`
+    - Body: `{ "service": "payment-service", "level": "ERROR", "message": "Database connection timeout" }`
+  - GET `/api/v1/events?service=auth-api&level=ERROR&limit=50`
+
+- Incidents
+  - GET `/api/v1/incidents?status_filter=open&limit=20`
+  - GET `/api/v1/incidents/{id}`
+  - PATCH `/api/v1/incidents/{id}/status` with `{ "status": "investigating" }`
+  - POST `/api/v1/incidents/{id}/analyze` (re-run AI analysis)
+
+Incident detection defaults: 5 ERROR events within 5 minutes for the same service will open a new incident (configurable via INCIDENT_THRESHOLD and INCIDENT_TIME_WINDOW).
+
+---
+
+## 💥 Example Scenarios (inspired by real ops)
+
+- E‑commerce
+  - payment-gateway • timeout_error • P1 → "Payment provider API timeout during checkout"
+  - inventory-service • data_sync • P2 → "Stock quantity not updating across warehouses"
+
+- Cloud/Infra
+  - k8s-controller • deployment_failure • P1 → "Pod CrashLoopBackOff for analytics-service"
+  - storage-service • disk_full • P1 → "Disk usage exceeded 95% on persistent volume"
+
+---
+
+## 📚 Docs
+
+- Local run: see `RUNNING.md`
+- Deployment guides (Railway, Vercel, Supabase): see `DEPLOYMENT.md`
+
+---
+
+## 🧪 Quick Test Snippets
+
+With the backend running:
+
+```bash
+# Health
+curl http://localhost:8000/health
+
+# Create an ERROR event
+curl -X POST http://localhost:8000/api/v1/events \
+  -H "Content-Type: application/json" \
+  -d '{"service":"payment-service","level":"ERROR","message":"Database connection timeout"}'
+
+# List incidents
+curl http://localhost:8000/api/v1/incidents
+```
+
+---
+
+## 👨‍💻 Author
+
+Abdullah Al Mamun Apu  
+Portfolio: https://mamunapu.tech • GitHub: https://github.com/almamun-git • LinkedIn: https://linkedin.com/in/almamun-in
+
+---
+
+## 📄 License
+
+MIT — see LICENSE.
+
+---
+
+"Built with ❤️ to make DevOps smarter."
