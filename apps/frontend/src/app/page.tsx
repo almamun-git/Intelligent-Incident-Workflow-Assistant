@@ -30,17 +30,19 @@ export default function Dashboard() {
   const [stats, setStats] = useState<Stats>({ total: 0, open: 0, investigating: 0, resolved: 0 })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [waking, setWaking] = useState(false)
 
   useEffect(() => {
     fetchIncidents()
     const interval = setInterval(fetchIncidents, 10000) // Refresh every 10 seconds
     return () => clearInterval(interval)
   }, [])
-
-  const fetchIncidents = async () => {
+  const fetchIncidents = async (retryCount = 0) => {
     try {
       console.log('Fetching from:', `${API_BASE_URL}/api/v1/incidents`)
-      const response = await axios.get(`${API_BASE_URL}/api/v1/incidents`)
+      const response = await axios.get(`${API_BASE_URL}/api/v1/incidents`, {
+        timeout: 60000, // 60 second timeout for cold starts
+      })
       const data = response.data
       setIncidents(data)
       
@@ -53,10 +55,35 @@ export default function Dashboard() {
       }
       setStats(statsData)
       setLoading(false)
-    } catch (err) {
+      setError(null)
+    } catch (err: any) {
       console.error('Error fetching incidents:', err)
-      setError('Failed to load incidents. Make sure the backend server is running.')
-      setLoading(false)
+      
+      // Retry once on network error (likely cold start)
+      if (retryCount === 0 && (err.code === 'ERR_NETWORK' || err.code === 'ECONNABORTED')) {
+        console.log('Retrying... (backend might be waking up)')
+        setError('Backend is waking up from sleep, please wait...')
+        setTimeout(() => fetchIncidents(1), 3000) // Retry after 3 seconds
+      } else {
+        setError('Failed to load incidents. The backend may be sleeping (free tier limitation).')
+        setLoading(false)
+      }
+    }
+  }
+
+  const wakeUpBackend = async () => {
+    setWaking(true)
+    setError(null)
+    try {
+      console.log('Waking up backend...')
+      await axios.get(`${API_BASE_URL}/health`, { timeout: 60000 })
+      console.log('Backend is awake!')
+      setWaking(false)
+      fetchIncidents()
+    } catch (err) {
+      console.error('Error waking backend:', err)
+      setWaking(false)
+      setError('Failed to wake up backend. Please try again.')
     }
   }
 
@@ -96,9 +123,28 @@ export default function Dashboard() {
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
             </svg>
           </div>
-          <div className="ml-3">
+          <div className="ml-3 flex-1">
             <h3 className="text-sm font-medium text-red-800">Error</h3>
             <p className="text-sm text-red-700 mt-1">{error}</p>
+            <div className="mt-4">
+              <button
+                onClick={wakeUpBackend}
+                disabled={waking}
+                className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {waking ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Waking up... (up to 50s)
+                  </>
+                ) : (
+                  '🔄 Retry / Wake Up Backend'
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
