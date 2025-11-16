@@ -1,4 +1,4 @@
-# 🚀 Ops-Assist AI – Intelligent Incident Response Platform
+# 🚀 Intelligent Incident Workflow Assistant
 
 AI-powered platform for real-time incident detection, classification, and analytics.
 
@@ -6,7 +6,7 @@ AI-powered platform for real-time incident detection, classification, and analyt
 
 ## 🧠 Overview
 
-Ops-Assist AI helps engineering and DevOps teams detect and triage production issues faster by:
+Intelligent Incident Workflow Assistant helps engineering and DevOps teams detect and triage production issues faster by:
 
 - Streaming and storing application events/logs
 - Automatically grouping spikes of errors into incidents
