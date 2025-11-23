@@ -10,10 +10,10 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
     
     # Database
-    database_url: str
+    database_url: str = "sqlite:///./test.db"
     
     # OpenAI
-    openai_api_key: str
+    openai_api_key: str = ""
     
     # Application
     environment: str = "development"
